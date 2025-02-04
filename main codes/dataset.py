@@ -23,7 +23,7 @@ class PVQDDataset(Dataset):
         self.feature_extractor = feature_extractor
 
 
-        
+    #__getitem__() method: a special (magic) method that allows instances of a class to support indexing and item retrieval like lists, tuples, or dictionaries.
     def __getitem__(self, idx):
         wavname = self.wavnames[idx]
         wavpath = os.path.join(self.wavdir, wavname)
@@ -35,8 +35,10 @@ class PVQDDataset(Dataset):
         return len(self.wavnames)
 
     def collate_fn(self, batch):  ## zero padding
+            # Groups the first elements together, the second elements together, and so on.
             wavs, scores, wavnames = zip(*batch)
             wavs = list(wavs)
+            # The key argument specifies a function (lambda x: x.shape[1]) that is applied to each element of the list wavs.
             max_len = max(wavs, key = lambda x : x.shape[1]).shape[1]
             output_wavs = []
             mel_specgrams = []
@@ -55,7 +57,8 @@ class PVQDDataset(Dataset):
                 mel_specgrams.append(mel_specgram)
                 padded_wav = padded_wav.squeeze(0)
 
-                
+                # Detaches the tensor from the computation graph.
+                # This is essential to prevent gradients from being tracked during backward propagation.
                 wav = wav.to('cpu').detach().numpy().copy()
                 asr_mel_feature = self.feature_extractor(wav, return_tensors="pt",sampling_rate=16000).input_features
                 asr_mel_features.append(asr_mel_feature)
